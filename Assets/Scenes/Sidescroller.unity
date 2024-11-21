@@ -1631,8 +1631,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a1ce42ea3e3dd44868493ae73ec06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  accelerationTime: 2
-  decelerationTime: 2
+  accelerationTime: 0.5
   maxSpeed: 5
   ground:
     serializedVersion: 2

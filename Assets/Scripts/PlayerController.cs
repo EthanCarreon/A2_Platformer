@@ -5,11 +5,10 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public float accelerationTime = 2f;
-    public float decelerationTime = 2f;
     float currentSpeed = 0f;
     public float maxSpeed;
     float acceleration;
-    Vector2 velocity;
+    Vector3 velocity;
 
     Rigidbody2D rb;
 
@@ -34,8 +33,6 @@ public class PlayerController : MonoBehaviour
         //manage the actual movement of the character.
         Vector2 playerInput = new Vector2(Input.GetAxis("Horizontal"), 0).normalized;
         MovementUpdate(playerInput);
-
-        Debug.Log(IsGrounded());
     }
 
     private void MovementUpdate(Vector2 playerInput)
@@ -51,7 +48,7 @@ public class PlayerController : MonoBehaviour
                 currentSpeed = maxSpeed;
             }
 
-            velocity = playerInput * currentSpeed;
+            velocity = playerInput;
         }
 
         else
@@ -63,11 +60,9 @@ public class PlayerController : MonoBehaviour
             {
                 currentSpeed = 0;
             }
-
-            velocity = velocity.normalized * currentSpeed;
         }
 
-        transform.position += (Vector3)velocity * Time.deltaTime;
+        transform.position += velocity * currentSpeed * Time.deltaTime;
 
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
@@ -77,7 +72,14 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        return currentSpeed > 0;
+        if (currentSpeed > 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
         
     }
     public bool IsGrounded()
