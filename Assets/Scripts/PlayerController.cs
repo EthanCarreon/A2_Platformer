@@ -136,17 +136,10 @@ public class PlayerController : MonoBehaviour
 
         else if (!IsGrounded())
         {
-            // applies gravity when player is no longer grounded
-            rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y + gravity * Time.deltaTime, terminalSpeed);
+            jumpVelocity += gravity * Time.deltaTime;
+            rb.velocity = new Vector2(rb.velocity.x, jumpVelocity);
         }
 
-        else
-        {
-            if (IsGrounded() && rb.velocity.y < 0f)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-            }
-        }
     }
 
     public bool IsWalking()
