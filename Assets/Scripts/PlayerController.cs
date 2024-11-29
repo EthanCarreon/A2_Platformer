@@ -25,7 +25,17 @@ public class PlayerController : MonoBehaviour
     public LayerMask ground;
     public Transform player;
 
+    public int currentHealth = 10;
+
     public bool jumped = false;
+    public bool isDashing = false;
+
+    public float dashSpeed = 10f;
+    public float dashDist = 5f;
+    public float dashTime = 3f;
+
+    float dash;
+    public float dashVelocity;
 
     public float terminalSpeed = -5f;
 
@@ -33,6 +43,14 @@ public class PlayerController : MonoBehaviour
     {
         left, right
     }
+
+    public enum CharacterState
+    {
+        idle, walk, jump, die
+    }
+
+    public CharacterState currentState = CharacterState.idle;
+    public CharacterState prevState = CharacterState.idle;
 
     public FacingDirection currentDirection = FacingDirection.left;
 
@@ -42,6 +60,7 @@ public class PlayerController : MonoBehaviour
 
         gravity = (-2 * apexHeight) / (Mathf.Pow(apexTime, 2));
         jump = (2 * apexHeight) / apexTime;
+        dash = (2 * dashSpeed) / dashTime;
 
         acceleration = maxSpeed / accelerationTime;
 
@@ -50,10 +69,64 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        prevState = currentState;
+
+        if (IsDead())
+        {
+            currentState = CharacterState.die;
+        }
+        
+        switch (currentState)
+        {
+            case CharacterState.idle:
+                if (IsWalking())
+                {
+                    currentState = CharacterState.walk;
+                }
+                if (!IsGrounded())
+                {
+                    currentState = CharacterState.jump;
+                }
+                break;
+            case CharacterState.walk:
+                if (!IsWalking())
+                {
+                    currentState = CharacterState.idle;
+                }
+                if (!IsGrounded())
+                {
+                    currentState = CharacterState.jump;
+                }
+                break;
+            case CharacterState.jump:
+                if (IsGrounded())
+                {
+                    if (IsWalking())
+                    {
+                        currentState = CharacterState.walk;
+                    }
+                    else
+                    {
+                        currentState = CharacterState.idle;
+                    }
+                }
+                break;
+            case CharacterState.die:
+                break;
+
+        }
+
         if ((Input.GetKeyDown(KeyCode.Space) && (IsGrounded() || coyoteTime > 0)) && !jumped)
         {
             jumped = true;
             jumpVelocity = jump;
+        }
+
+        if (Input.GetKeyDown(KeyCode.E) && !isDashing)
+        {
+            isDashing = true;
+            dashVelocity = dash;
+
         }
 
         if (coyoteTime <= 0)
@@ -61,7 +134,6 @@ public class PlayerController : MonoBehaviour
             coyoteTime = 0;
         }
 
-        Debug.Log(IsGrounded());
     }
 
     void FixedUpdate()
@@ -101,6 +173,19 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.velocity = new Vector2(velocity.x, rb.velocity.y);
+
+        if (isDashing)
+        {
+            dashVelocity -= dash * Time.deltaTime;
+            rb.velocity = new Vector2(velocity.x + dashVelocity, rb.velocity.y);
+
+            if (dashVelocity <= 0)
+            {
+                isDashing = false;
+            }
+
+
+        }
 
         if (!IsGrounded())
         {
@@ -147,6 +232,16 @@ public class PlayerController : MonoBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, 0);
             }
         }
+    }
+
+    public bool IsDead()
+    {
+        return currentHealth <= 0;
+    }
+
+    public void OnDeathAnimationComplete()
+    {
+        gameObject.SetActive(false);
     }
 
     public bool IsWalking()
