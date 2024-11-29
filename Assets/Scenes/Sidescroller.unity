@@ -1635,12 +1635,15 @@ MonoBehaviour:
   maxSpeed: 5
   apexHeight: 3
   apexTime: 1
+  coyoteTime: 0
+  maxCoyoteTime: 0.15
+  jumpVelocity: 0
   ground:
     serializedVersion: 2
     m_Bits: 8
   player: {fileID: 1433354315}
   jumped: 0
-  terminalSpeed: -10
+  terminalSpeed: 0
   currentDirection: 0
 --- !u!4 &1433354315
 Transform:
