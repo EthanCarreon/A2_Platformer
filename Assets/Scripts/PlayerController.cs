@@ -181,13 +181,29 @@ public class PlayerController : MonoBehaviour
 
         if (isDashing)
         {
-            
-            dashVelocity -= dash * Time.deltaTime;
-            rb.velocity = new Vector2(velocity.x + dashVelocity, rb.velocity.y);
-
-            if (dashVelocity <= 0)
+            if (currentDirection == FacingDirection.right)
             {
-                isDashing = false;
+                rb.velocity = new Vector2(rb.velocity.x + dashVelocity, rb.velocity.y);
+                dashVelocity -= dash * Time.deltaTime;
+
+                Debug.Log("dashing right");
+
+                if (dashVelocity <= 0)
+                {
+                    isDashing = false;
+                    dashVelocity = 0;
+                }
+            }
+            else if (currentDirection == FacingDirection.left)
+            {
+                rb.velocity = new Vector2(rb.velocity.x - dashVelocity, rb.velocity.y);
+                dashVelocity -= dash * Time.deltaTime;
+
+                if (dashVelocity <= 0)
+                {
+                    isDashing = false;
+                    dashVelocity = 0;
+                }
             }
 
 
