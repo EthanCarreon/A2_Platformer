@@ -1646,7 +1646,7 @@ MonoBehaviour:
   currentHealth: 10
   jumped: 0
   isDashing: 0
-  dashSpeed: 10
+  dashSpeed: 15
   dashDist: 5
   dashTime: 3
   dashVelocity: 0

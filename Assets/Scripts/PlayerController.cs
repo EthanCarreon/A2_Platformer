@@ -141,8 +141,13 @@ public class PlayerController : MonoBehaviour
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
         //manage the actual movement of the character.
         Vector2 playerInput = new Vector2(Input.GetAxis("Horizontal"), 0);
-        MovementUpdate(playerInput);
 
+        if (isDashing)
+        {
+            playerInput.x = 0;
+        }
+
+        MovementUpdate(playerInput);
     }
 
     private void MovementUpdate(Vector2 playerInput)
@@ -176,6 +181,7 @@ public class PlayerController : MonoBehaviour
 
         if (isDashing)
         {
+            
             dashVelocity -= dash * Time.deltaTime;
             rb.velocity = new Vector2(velocity.x + dashVelocity, rb.velocity.y);
 
