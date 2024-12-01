@@ -39,6 +39,9 @@ public class PlayerController : MonoBehaviour
 
     public float terminalSpeed = -5f;
 
+    public bool onWall = false;
+    public bool onWallAndJumped = false;
+
     public enum FacingDirection
     {
         left, right
@@ -75,7 +78,16 @@ public class PlayerController : MonoBehaviour
         {
             currentState = CharacterState.die;
         }
-        
+
+        if (IsTouchingWall() && !IsGrounded())
+        {
+            onWall = true;
+        }
+        else
+        {
+            onWall = false;
+        }
+
         switch (currentState)
         {
             case CharacterState.idle:
@@ -122,6 +134,13 @@ public class PlayerController : MonoBehaviour
             jumpVelocity = jump;
         }
 
+        if (IsTouchingWall() && Input.GetKeyDown(KeyCode.Space) && !isDashing && !jumped && !onWallAndJumped)
+        {
+            jumped = true;
+            onWallAndJumped = true;
+            jumpVelocity = jump;
+        }
+
         if (Input.GetKeyDown(KeyCode.E) && !isDashing)
         {
             isDashing = true;
@@ -147,11 +166,26 @@ public class PlayerController : MonoBehaviour
             playerInput.x = 0;
         }
 
+        if (!onWall && jumpVelocity <= 0 )
+        {
+            onWallAndJumped = false;
+        }
+
         MovementUpdate(playerInput);
     }
 
     private void MovementUpdate(Vector2 playerInput)
     {
+
+        if (IsTouchingWall())
+        {
+            if ((currentDirection == FacingDirection.right && playerInput.x > 0) ||
+                (currentDirection == FacingDirection.left && playerInput.x < 0))
+            {
+                playerInput.x = 0; 
+            }
+        }
+
         if (playerInput.magnitude > 0)
         {
             currentSpeed += acceleration * Time.deltaTime;
@@ -181,12 +215,11 @@ public class PlayerController : MonoBehaviour
 
         if (isDashing)
         {
+
             if (currentDirection == FacingDirection.right)
             {
                 rb.velocity = new Vector2(rb.velocity.x + dashVelocity, rb.velocity.y);
                 dashVelocity -= dash * Time.deltaTime;
-
-                Debug.Log("dashing right");
 
                 if (dashVelocity <= 0)
                 {
@@ -286,6 +319,36 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(player.position, Vector2.down * 0.65f, Color.green);
 
         return checkGrounded;
+    }
+
+    public bool IsTouchingWall()
+    {
+        Vector2 direction;
+
+        if (currentDirection == FacingDirection.right)
+        {
+            direction = Vector2.right;
+        }
+        else
+        {
+            direction = Vector2.left;
+        }
+
+        bool checkOnWall = Physics2D.Raycast(player.position, direction, 0.7f, ground);
+        Debug.DrawRay(player.position, direction * 0.7f, Color.red);
+
+        return checkOnWall;
+    }
+
+    public void WallJump()
+    {
+
+        jumped = true;
+        jumpVelocity = jump;
+
+        onWallAndJumped = false;  
+
+        Debug.Log("Wall Jump performed!");
     }
 
     public FacingDirection GetFacingDirection()
