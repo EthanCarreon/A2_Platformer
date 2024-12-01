@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour
     float gravity;
 
     public float jumpVelocity;
+    public float wallJumpVelocity;
 
     Rigidbody2D rb;
 
@@ -134,11 +135,11 @@ public class PlayerController : MonoBehaviour
             jumpVelocity = jump;
         }
 
-        if (IsTouchingWall() && Input.GetKeyDown(KeyCode.Space) && !isDashing && !jumped && !onWallAndJumped)
+        if (IsTouchingWall() && Input.GetKeyDown(KeyCode.Space) && !isDashing && !onWallAndJumped)
         {
             jumped = true;
             onWallAndJumped = true;
-            jumpVelocity = jump;
+            wallJumpVelocity = jump;
         }
 
         if (Input.GetKeyDown(KeyCode.E) && !isDashing)
@@ -164,11 +165,6 @@ public class PlayerController : MonoBehaviour
         if (isDashing)
         {
             playerInput.x = 0;
-        }
-
-        if (!onWall && jumpVelocity <= 0 )
-        {
-            onWallAndJumped = false;
         }
 
         MovementUpdate(playerInput);
@@ -250,6 +246,17 @@ public class PlayerController : MonoBehaviour
         else
         {
             coyoteTime = maxCoyoteTime;
+        }
+
+        if (onWallAndJumped)
+        {
+            wallJumpVelocity += gravity * Time.deltaTime;
+            rb.velocity = new Vector2(rb.velocity.x, wallJumpVelocity);
+
+            if (wallJumpVelocity <= -5)
+            {
+                onWallAndJumped = false;
+            }
         }
 
 
