@@ -248,6 +248,8 @@ public class PlayerController : MonoBehaviour
             coyoteTime = maxCoyoteTime;
         }
 
+        // wall jumping 
+
         if (onWallAndJumped)
         {
             wallJumpVelocity += gravity * Time.deltaTime;
