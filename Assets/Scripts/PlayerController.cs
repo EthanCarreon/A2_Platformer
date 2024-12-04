@@ -149,6 +149,8 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        // if the coyote time ever reaches less than or equal to 0, keep the coyote time at 0 so it doesnt continue to subtract indefinitely.
+
         if (coyoteTime <= 0)
         {
             coyoteTime = 0;
@@ -209,13 +211,22 @@ public class PlayerController : MonoBehaviour
 
         rb.velocity = new Vector2(velocity.x, rb.velocity.y);
 
+        // dashing mechanic
+
         if (isDashing)
         {
 
+            // checking which direction the character is currently facing, depending on the direction,
+
             if (currentDirection == FacingDirection.right)
             {
+                // initiate the rigidbodies velocity and add positive or negative force 
+                // if the character is facing right, add positive velocity (so it goes right) vice versa, subtract so it goes left
+
                 rb.velocity = new Vector2(rb.velocity.x + dashVelocity, rb.velocity.y);
                 dashVelocity -= dash * Time.deltaTime;
+
+                // also subtract the dash velocity over time so the dashing actually comes to a stop
 
                 if (dashVelocity <= 0)
                 {
@@ -223,10 +234,14 @@ public class PlayerController : MonoBehaviour
                     dashVelocity = 0;
                 }
             }
+
+            // check if facing left
             else if (currentDirection == FacingDirection.left)
             {
                 rb.velocity = new Vector2(rb.velocity.x - dashVelocity, rb.velocity.y);
                 dashVelocity -= dash * Time.deltaTime;
+
+                // also subtract the dash velocity over time so the dashing actually comes to a stop & also set the isDashing boolean so that it knows it is no longer dashing
 
                 if (dashVelocity <= 0)
                 {
@@ -237,23 +252,35 @@ public class PlayerController : MonoBehaviour
 
 
         }
+
+        // coyote time, check if the player is NOT grounded, if it they are not, which means they have reached an edge or jumped,
+        // subtract the coyote time by time.deltatime so the player has a limited time before the coyote time reaches 0.
 
         if (!IsGrounded())
         {
             coyoteTime -= Time.deltaTime;
 
         }
+        // if they are grounded, then just set thet coyote time to the max coyote time.
         else
         {
             coyoteTime = maxCoyoteTime;
         }
 
-        // wall jumping 
+        // wall jumping, checks using a boolean to check if the player is colliding with a wall AND has jumped or just isnt grounded
 
         if (onWallAndJumped)
         {
+            // using a separate velocity variable, add itself with the gravity so that it can also be applied the
+            // same gravity when the player jumps
             wallJumpVelocity += gravity * Time.deltaTime;
+            // add the wall jump velocity to the rigidbodies velocity
             rb.velocity = new Vector2(rb.velocity.x, wallJumpVelocity);
+
+            // it is NEGATIVE 5 here because I need to check when the player falls down, for a regular jump, it only checks if it is less than or equal to 0,
+            // but when it reaches its 0 point, it has reached its apex height point. Here, what I need to do is check if the player has reached BELOW
+            // their apex height, and if they have, then it can sent the wall jumped boolean to false
+            // I put -5 as a random testing value and it seems that it works pretty well
 
             if (wallJumpVelocity <= -5)
             {
