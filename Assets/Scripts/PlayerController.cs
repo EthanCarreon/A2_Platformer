@@ -80,14 +80,20 @@ public class PlayerController : MonoBehaviour
             currentState = CharacterState.die;
         }
 
-        if (IsTouchingWall() && !IsGrounded())
-        {
-            onWall = true;
-        }
-        else
-        {
-            onWall = false;
-        }
+        // a separate boolean variable that checks if the character is touching the wall, and is not grounded,
+        // this boolean's purpose is to check if the player is touching a wall, but is also not grounded, but this doesn't
+        // exactly mean that the player has also made a wall jump yet
+
+        //if (IsTouchingWall() && !IsGrounded())
+        //{
+        //    onWall = true;
+        //}
+        //else
+        //{
+        //    onWall = false;
+        //}
+
+        // animation switch cases depending on player input
 
         switch (currentState)
         {
@@ -129,11 +135,15 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        // conditional statement to check if the player has jumped off the ground, and also check if they have enough coyote time to make a forgiving jump
+
         if ((Input.GetKeyDown(KeyCode.Space) && (IsGrounded() || coyoteTime > 0)) && !jumped)
         {
             jumped = true;
             jumpVelocity = jump;
         }
+
+        // conditional statemtn to check if the player 
 
         if (IsTouchingWall() && Input.GetKeyDown(KeyCode.Space) && !isDashing && !onWallAndJumped)
         {
@@ -174,40 +184,55 @@ public class PlayerController : MonoBehaviour
 
     private void MovementUpdate(Vector2 playerInput)
     {
+        // this checks if the player is touching a wall, if they are, set the player input for the x value to 0 so they cant move
+        // the isTouchingWall method uses a raycast, so if the player turns around and the raycast flips, the player will technically no longer be touching the wall
 
         if (IsTouchingWall())
         {
-            if ((currentDirection == FacingDirection.right && playerInput.x > 0) ||
-                (currentDirection == FacingDirection.left && playerInput.x < 0))
-            {
                 playerInput.x = 0; 
-            }
         }
 
+        // horizontal movement
+        
+        // check if the player's magnitude is greater than 0, basically means it is checking if the player is moving
         if (playerInput.magnitude > 0)
         {
+            // add acceleration formula to the current speed multiplied by time.deltatime
             currentSpeed += acceleration * Time.deltaTime;
 
+            // if the current speed every reaches above the set max speed, make the current speed always equal to the max speed so it doesnt go above
             if (currentSpeed > maxSpeed)
             {
                 currentSpeed = maxSpeed;
             }
 
+            // set the velocity (which is initiated as a vector in the beginning) to equal the player input multiplied by the current speed
+            // what will happen is the player input (which is just the horizontal input) will move according to the current speed
+            // the velocity variable is uesd as a vector3, so that it can be applied to the rigidbodies constructor
             velocity = playerInput * currentSpeed;
         }
 
         else
 
         {
+            // else if the player is not moving (or if there is no player input) start decelerating the speed
+            // I use the acceleration variable, but I could also have a seperate deceleration variable if I wanted the accerlation and the deceleration times to be different
+            // subtract from the current speed multiplied by time.deltatime
             currentSpeed -= acceleration * Time.deltaTime;
 
+            // if the current speed ever reaches below 0, set the current speed to 0 so it doesnt go into the negatives
             if (currentSpeed < 0)
             {
                 currentSpeed = 0;
             }
 
+            // set the velocity to vector2.zero so it actually stops moving
+            // If this line is not added, when the player decelerates it might not always stop moving and could be inconsistent
+
             velocity = Vector2.zero;
         }
+
+        // finally, set the rigidbodies velocity x value to equal the velocity that was used to change the current speed from the player input
 
         rb.velocity = new Vector2(velocity.x, rb.velocity.y);
 
@@ -286,12 +311,20 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // jump mechanic
+
+        // conditional statement to check if the jumped boolean variable is true
 
         if (jumped)
         {
+
+            // if the player has jumped, set the jump velocity to add itself with the gravity that subtracts the jump velocity
+            // it subtracts the jump velocity because it has a negative value in the formula, and then multiply itself by time.deltatime so it can run over time
             jumpVelocity += gravity * Time.deltaTime;
+            // then, apply it to the rigidbody velocity by putting it in the y value in the vector2's constructor
             rb.velocity = new Vector2(rb.velocity.x, jumpVelocity);
 
+            // if the jump velocity ever reaches less than the terminal speed that is set in the inspector, set it to the terminal speed so it doesnt go below
             if (jumpVelocity < terminalSpeed)
             {
                 jumpVelocity = terminalSpeed;
@@ -314,14 +347,10 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y + gravity * Time.deltaTime, terminalSpeed);
         }
 
-        else
-        {
-            if (IsGrounded() && rb.velocity.y < 0f)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-            }
-        }
+
     }
+
+    // player input methods to check specific inputs coming from the player for animations
 
     public bool IsDead()
     {
@@ -345,11 +374,13 @@ public class PlayerController : MonoBehaviour
         }
 
     }
+
+    // check if player is grounded method
     public bool IsGrounded()
     {
-        Vector2 direction = new Vector2(1, -1);
-
+        // set a raycast that points downwards at a certain length that fits perfectly from the origin point of the player, and down to where it just about touches the ground
         bool checkGrounded = Physics2D.Raycast(player.position, Vector2.down, 0.65f, ground);
+        // draw the ray green so I can see it through gizmos
         Debug.DrawRay(player.position, Vector2.down * 0.65f, Color.green);
 
         return checkGrounded;
