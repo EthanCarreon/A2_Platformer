@@ -215,7 +215,6 @@ public class PlayerController : MonoBehaviour
 
         if (isDashing)
         {
-
             // checking which direction the character is currently facing, depending on the direction,
 
             if (currentDirection == FacingDirection.right)
@@ -249,7 +248,6 @@ public class PlayerController : MonoBehaviour
                     dashVelocity = 0;
                 }
             }
-
 
         }
 
@@ -389,15 +387,18 @@ public class PlayerController : MonoBehaviour
 
     public FacingDirection GetFacingDirection()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
+        float horizontalInput = Input.GetAxis("Horizontal");    
 
-        if (horizontalInput > 0)
+        if (!isDashing)
         {
-            return currentDirection = FacingDirection.right;
-        }
-        else if (horizontalInput < 0)
-        {
-            return currentDirection = FacingDirection.left;
+            if (horizontalInput > 0)
+            {
+                return currentDirection = FacingDirection.right;
+            }
+            else if (horizontalInput < 0)
+            {
+                return currentDirection = FacingDirection.left;
+            }
         }
         return currentDirection;
     }
