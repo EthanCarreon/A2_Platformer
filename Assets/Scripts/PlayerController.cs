@@ -80,19 +80,6 @@ public class PlayerController : MonoBehaviour
             currentState = CharacterState.die;
         }
 
-        // a separate boolean variable that checks if the character is touching the wall, and is not grounded,
-        // this boolean's purpose is to check if the player is touching a wall, but is also not grounded, but this doesn't
-        // exactly mean that the player has also made a wall jump yet
-
-        //if (IsTouchingWall() && !IsGrounded())
-        //{
-        //    onWall = true;
-        //}
-        //else
-        //{
-        //    onWall = false;
-        //}
-
         // animation switch cases depending on player input
 
         switch (currentState)
@@ -143,7 +130,10 @@ public class PlayerController : MonoBehaviour
             jumpVelocity = jump;
         }
 
-        // conditional statemtn to check if the player 
+        // conditional statement to check if the player is touching the wall, and has pressed space to jump to perform a wall jump
+        // it also needs to check if they are not dashing, so the player cannot wall jump and dash at the same time
+        // this will set a boolean "onWallAndJumped" to true, and will become false once the wall jump velocity has reached a certain value
+        // the onWallAndJumped boolean must also be false in order for this conditional statement to run
 
         if (IsTouchingWall() && Input.GetKeyDown(KeyCode.Space) && !isDashing && !onWallAndJumped)
         {
@@ -151,6 +141,8 @@ public class PlayerController : MonoBehaviour
             onWallAndJumped = true;
             wallJumpVelocity = jump;
         }
+
+        // conditional statement to check if the player is pressing "E" to dash, and also if the player is not currently dashing
 
         if (Input.GetKeyDown(KeyCode.E) && !isDashing)
         {
@@ -173,6 +165,10 @@ public class PlayerController : MonoBehaviour
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
         //manage the actual movement of the character.
         Vector2 playerInput = new Vector2(Input.GetAxis("Horizontal"), 0);
+
+        // if the player is dashing, set the player input x value to 0 so that they cannot move while they are dashing
+        // if they are able to move, if they move in the direction they are dashing at the same time, it could make the dash appear to be faster than it should be, and can also 
+        // look inconsistent if they do not apply any input
 
         if (isDashing)
         {
@@ -305,9 +301,10 @@ public class PlayerController : MonoBehaviour
             // their apex height, and if they have, then it can sent the wall jumped boolean to false
             // I put -5 as a random testing value and it seems that it works pretty well
 
-            if (wallJumpVelocity <= -5)
+            if (wallJumpVelocity <= -7)
             {
                 onWallAndJumped = false;
+                wallJumpVelocity = 0;
             }
         }
 
@@ -338,6 +335,7 @@ public class PlayerController : MonoBehaviour
             if (jumpVelocity <= 0)
             {
                 jumped = false;
+                jumpVelocity = 0;
             }
         }
 
@@ -345,6 +343,17 @@ public class PlayerController : MonoBehaviour
         {
             // applies gravity when player is no longer grounded
             rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y + gravity * Time.deltaTime, terminalSpeed);
+        }
+
+
+        // without this code, the player might sometimes get stuck in the ground occasionally
+        // this checks to see if the player is grounded, and if the rigidbodies y velocity is anything less than 0, than just set it to 0 to keep it consistent.
+        else
+        {
+            if (IsGrounded() && rb.velocity.y < 0f)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+            }
         }
 
 
@@ -361,6 +370,8 @@ public class PlayerController : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+
+    // check if player is walking for animation 
 
     public bool IsWalking()
     {
@@ -379,12 +390,14 @@ public class PlayerController : MonoBehaviour
     public bool IsGrounded()
     {
         // set a raycast that points downwards at a certain length that fits perfectly from the origin point of the player, and down to where it just about touches the ground
-        bool checkGrounded = Physics2D.Raycast(player.position, Vector2.down, 0.65f, ground);
+        bool checkGrounded = Physics2D.Raycast(player.position, Vector2.down, 0.7f, ground);
         // draw the ray green so I can see it through gizmos
-        Debug.DrawRay(player.position, Vector2.down * 0.65f, Color.green);
+        Debug.DrawRay(player.position, Vector2.down * 0.7f, Color.green);
 
         return checkGrounded;
     }
+
+    // check if player is touching wall method
 
     public bool IsTouchingWall()
     {
@@ -399,27 +412,20 @@ public class PlayerController : MonoBehaviour
             direction = Vector2.left;
         }
 
-        bool checkOnWall = Physics2D.Raycast(player.position, direction, 0.7f, ground);
-        Debug.DrawRay(player.position, direction * 0.7f, Color.red);
+        bool checkOnWall = Physics2D.Raycast(player.position, direction, 0.75f, ground);
+        Debug.DrawRay(player.position, direction * 0.75f, Color.red);
 
         return checkOnWall;
     }
 
-    public void WallJump()
-    {
-
-        jumped = true;
-        jumpVelocity = jump;
-
-        onWallAndJumped = false;  
-
-        Debug.Log("Wall Jump performed!");
-    }
+    // check get facing direction enum method
 
     public FacingDirection GetFacingDirection()
     {
+        // grab the horizontal input as a float, so it can be used to detect the change of the value as the horizontal player input moves
         float horizontalInput = Input.GetAxis("Horizontal");    
 
+        // check if it is not dashing first, if the player is not dashing, then they can proceed
         if (!isDashing)
         {
             if (horizontalInput > 0)
